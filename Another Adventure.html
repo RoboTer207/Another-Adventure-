@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Another Adventure</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Butcherman&family=Creepster&family=Fredoka:wght@500;700&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sky1:#f7c978; --sky2:#4a86c0; --fg:#2a2118; --panel:rgba(255,250,235,.8);
+  --real:#8a1c1c; --gold:#a87400; --bar:#2a2118; --hov:#ffe9a0; --v:0; --g:.05;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--sky1:#6b4f12; --sky2:#12403b; --fg:#eadfc9; --panel:rgba(18,13,10,.82); --real:#ff6b6b; --gold:#ffd86b; --bar:#eadfc9; --hov:#120d0a;}
+}
+:root[data-theme="dark"]{--sky1:#6b4f12; --sky2:#12403b; --fg:#eadfc9; --panel:rgba(18,13,10,.82); --real:#ff6b6b; --gold:#ffd86b; --bar:#eadfc9; --hov:#120d0a;}
+body.dim{--panel:rgba(14,10,8,.84); --fg:#eadfc9; --real:#ff6b6b; --gold:#ffd86b; --bar:#eadfc9; --hov:#120d0a}
+body.late{--fg:#cfd8d0; --bar:#cfd8d0}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*{box-sizing:border-box}
+body{margin:0;min-height:100%;background:#111;color:var(--fg);font-family:var(--font,'Fredoka','Trebuchet MS',sans-serif);font-size:18px;line-height:1.5;overflow-x:hidden}
+#bg{position:fixed;inset:0;z-index:0;background:linear-gradient(180deg,var(--sky2),var(--sky1) 88%);transition:filter 2s}
+#bg.flick{animation:flick 5s infinite}
+#grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:var(--g);mix-blend-mode:overlay;transition:opacity 2s;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation:gr .7s steps(1) infinite}
+#castle{position:fixed;left:50%;bottom:0;z-index:2;width:min(640px,120vw);transform:translateX(-50%);opacity:0;transition:opacity 1.4s;pointer-events:none;filter:drop-shadow(0 0 18px var(--gold))}
+#castle.flash{opacity:.9;transition:opacity .2s}
+main{position:relative;z-index:3;max-width:620px;margin:0 auto;padding:20px 18px 110px}
+#cracks{position:fixed;inset:0;z-index:4;width:100%;height:100%;pointer-events:none;opacity:.8;filter:drop-shadow(1px 1px 0 rgba(0,0,0,.6)) drop-shadow(0 0 3px rgba(255,255,255,.45))}
+#cracks path{fill:none;stroke:rgba(255,255,255,.92);stroke-linecap:round;stroke-linejoin:miter;vector-effect:non-scaling-stroke;stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset .7s cubic-bezier(.1,.8,.2,1)}
+#cracks .sh{stroke:none;opacity:0;transition:opacity 1.6s}
+body.horror #cracks path{stroke:#ff8a8a}
+body.horror #cracks{opacity:1}
+#vig{position:fixed;inset:0;z-index:5;pointer-events:none;
+  background:radial-gradient(ellipse at center,transparent calc(80% - var(--v)*60%),rgba(0,0,0,calc(.1 + var(--v)*.85)) 100%)}
+body.hungry #vig{animation:beat 1.1s infinite}
+#meters{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px}
+.m span{font-size:12px;opacity:.8}
+.m i{display:block;height:6px;background:rgba(0,0,0,.25);border-radius:3px;overflow:hidden}
+.m b{display:block;height:100%;background:var(--bar);border-radius:3px;transition:width .9s}
+.m.low b{background:#c22;animation:pulse .9s infinite}
+.m.low span{color:var(--real)}
+#card{background:var(--panel);border-radius:14px;padding:22px 20px;backdrop-filter:blur(3px);transition:background 2s,color 2s;box-shadow:0 0 40px rgba(0,0,0,calc(var(--v)*.6))}
+h1{font-size:15px;margin:0 0 10px;font-weight:700;opacity:.7}
+.cap{font-size:28px;line-height:1.25;margin:0 0 14px;font-weight:700}
+.sit{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px;opacity:.65;margin:0 0 20px}
+.spin{font-size:22px;margin:16px 0}
+button{display:block;width:100%;text-align:left;font:inherit;color:inherit;background:transparent;border:2px solid var(--fg);border-radius:10px;padding:11px 14px;margin:8px 0;cursor:pointer}
+button:hover:not(:disabled){background:var(--fg);color:var(--hov)}
+button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+button:disabled{opacity:.35;cursor:default}
+.next{text-align:center;font-weight:700;margin-top:18px}
+.sr{font-family:ui-monospace,Menlo,Consolas,monospace;color:var(--real);font-size:.78em;letter-spacing:-.02em;text-shadow:2px 0 rgba(255,0,0,.55),-2px 0 rgba(0,220,255,.55);animation:jit .12s infinite}
+.sv{font-family:Georgia,serif;font-style:italic;color:var(--gold);text-shadow:0 0 12px var(--gold)}
+table{width:100%;border-collapse:collapse;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:15px;margin:14px 0}
+td{padding:4px 0;border-bottom:1px solid rgba(128,128,128,.4)}
+td:last-child{text-align:right}
+.vis{font-family:Georgia,serif;font-style:italic;color:var(--gold);text-shadow:0 0 14px var(--gold);font-size:24px;margin:18px 0}
+.wh{position:fixed;z-index:6;pointer-events:none;font-family:Georgia,serif;font-style:italic;font-size:22px;opacity:.5;color:#e8e0d0;text-shadow:0 0 6px #000;animation:wh 4s forwards}
+.wh.g{color:var(--gold);text-shadow:0 0 12px var(--gold)}
+.eyes{position:fixed;z-index:6;width:72px;pointer-events:none;opacity:.7;animation:eye 3.4s forwards}
+.shake{animation:shake .35s}
+#start{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;
+  background:radial-gradient(ellipse at 50% 40%,rgba(255,255,255,.55),transparent 70%);color:#2a2118}
+#start h2{font-size:48px;margin:0;line-height:1.1;font-weight:700}
+#start p{margin:0;max-width:420px}
+#start button{width:auto;text-align:center;font-weight:700;padding:12px 26px;margin-top:8px}
+#start small{opacity:.7;font-size:13px}
+#ctl{position:fixed;z-index:11;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));display:flex;flex-wrap:wrap;justify-content:flex-end;max-width:92vw;gap:6px}
+#ctl button{width:auto;font-size:13px;padding:5px 10px;margin:0;background:var(--panel)}
+#scene{position:fixed;left:0;bottom:0;width:100%;height:78%;z-index:1;pointer-events:none;transition:filter 2s}
+#scene .x{opacity:0}
+#scene .haze{opacity:calc(.4 + var(--v)*.5)}
+#scene .dk .x{opacity:1}
+#scene .dk .n{opacity:0}
+#scene .fig{opacity:0;transition:opacity 1.5s,transform 3s}
+#scene .sun{transition:transform 4s}
+#scene .w1,#scene .w2{transition:fill 2s}
+#scene.a .w2{fill:#1a1208}
+#scene.b .fig{opacity:1}
+#scene.b .sun{transform:translateY(45px)}
+#scene.c .w1{fill:#1a1208}
+#scene.c .sun{transform:translateY(90px)}
+#scene.d .fig{transform:scale(1.3);transform-origin:195px 330px}
+body.horror #scene .x{opacity:1}
+body.horror #scene .n{opacity:0}
+body.horror #scene .fig{opacity:1}
+#notes{display:none;position:fixed;inset:0;z-index:12;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:20px}
+#notes.on{display:flex}
+#notes>div{background:#17110c;color:#eadfc9;border-radius:14px;padding:20px;max-width:560px;max-height:85vh;overflow:auto;font-size:16px}
+#notes h3{margin:0 0 10px}
+#notes li{margin:9px 0}
+#notes button{margin-top:14px;border-color:#eadfc9;width:auto}
+#notes button:hover:not(:disabled){background:#eadfc9;color:#17110c}
+body.calm *{animation:none!important}
+#blk{position:fixed;inset:0;z-index:9;background:#000;opacity:0;pointer-events:none;transition:opacity .08s}
+#blk.on{opacity:1}
+body.title main,body.title #cracks,body.title #ctl button:not(#fx){visibility:hidden}
+body.horror .cap,body.horror h1,body.horror .spin,body.horror #ttl,body.horror #start p{font-family:'Butcherman','Creepster',Impact,fantasy;color:#b00000;text-shadow:0 0 10px #500,2px 2px 0 #000;letter-spacing:.04em}
+body.horror #ttl{font-size:62px}
+body.horror #card{animation:shake .35s}
+body.horror #bg{filter:saturate(1.5) hue-rotate(-40deg) brightness(.4)!important}
+body.horror #scene{filter:saturate(1.6) hue-rotate(-30deg) brightness(.5)!important}
+@keyframes flick{0%,90%,100%{opacity:1}91%{opacity:.5}93%{opacity:.95}95%{opacity:.35}97%{opacity:.9}}
+@keyframes gr{0%{background-position:0 0}25%{background-position:-60px 40px}50%{background-position:30px -70px}75%{background-position:-20px -30px}}
+@keyframes beat{0%,100%{opacity:1}12%{opacity:.55}24%{opacity:1}36%{opacity:.7}}
+@keyframes pulse{50%{opacity:.4}}
+@keyframes jit{0%{transform:translate(1px,0)}50%{transform:translate(-1px,1px)}}
+@keyframes shake{20%{transform:translate(-5px,2px)}40%{transform:translate(6px,-3px)}60%{transform:translate(-3px,-2px)}80%{transform:translate(3px,3px)}}
+@keyframes wh{0%{opacity:0}30%{opacity:.55}100%{opacity:0}}
+@keyframes eye{0%{opacity:0}15%{opacity:.8}45%{transform:scaleY(1)}50%{transform:scaleY(.08)}55%{transform:scaleY(1)}85%{opacity:.8}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body class="title">
+<div id="bg"></div>
+<svg id="scene" viewBox="0 0 800 400" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+<defs>
+<filter id="rough" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="3" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="7"/></filter>
+<filter id="fine"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="5" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 .45 0 0 0 0 .4 0 0 0 0 .35 0 0 0 .9 -.25" result="m"/><feComposite in="m" in2="SourceGraphic" operator="in" result="t"/><feBlend in="SourceGraphic" in2="t" mode="multiply"/></filter>
+<filter id="soft"><feGaussianBlur stdDeviation="3"/></filter>
+<filter id="cloudf" x="-30%" y="-80%" width="160%" height="260%"><feGaussianBlur in="SourceGraphic" stdDeviation="4" result="b"/><feTurbulence type="fractalNoise" baseFrequency=".02" numOctaves="3" seed="9" result="t"/><feDisplacementMap in="b" in2="t" scale="24"/></filter>
+<radialGradient id="gSun"><stop offset="0" stop-color="#fff7c2" stop-opacity=".95"/><stop offset=".35" stop-color="#ffd878" stop-opacity=".45"/><stop offset="1" stop-color="#ffb347" stop-opacity="0"/></radialGradient>
+<radialGradient id="gSunR"><stop offset="0" stop-color="#ff2a1a" stop-opacity=".8"/><stop offset=".4" stop-color="#8a0000" stop-opacity=".4"/><stop offset="1" stop-color="#400" stop-opacity="0"/></radialGradient>
+<linearGradient id="gGround" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b8935f"/><stop offset=".35" stop-color="#8a6439"/><stop offset="1" stop-color="#46301a"/></linearGradient>
+<linearGradient id="gWall" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6a4529"/><stop offset="1" stop-color="#b58558"/></linearGradient>
+<linearGradient id="gTrunk" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3a2616"/><stop offset=".7" stop-color="#7a5636"/><stop offset="1" stop-color="#3a2616"/></linearGradient>
+<linearGradient id="gCact" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#142410"/><stop offset=".6" stop-color="#3f6b2b"/><stop offset="1" stop-color="#142410"/></linearGradient>
+<linearGradient id="gHaze" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3d9a8" stop-opacity="0"/><stop offset="1" stop-color="#f3d9a8" stop-opacity=".8"/></linearGradient>
+<pattern id="planks" width="170" height="12" patternUnits="userSpaceOnUse"><rect width="170" height="12" fill="url(#gWall)"/><rect y="10.8" width="170" height="1.3" fill="#2b1a0e" opacity=".75"/></pattern>
+<pattern id="tin" width="8" height="10" patternUnits="userSpaceOnUse"><rect width="8" height="10" fill="#77716b"/><rect width="3" height="10" fill="#a29c94"/><rect x="5" width="1.6" height="10" fill="#4c4743"/></pattern>
+</defs>
+<g class="pair"><g class="n"><polygon points="0,300 0,265 22,278 44,280 66,280 88,276 110,271 132,280 154,280 176,275 198,265 220,277 242,280 264,273 286,262 308,248 330,257 352,269 374,263 396,247 418,235 440,226 462,226 484,226 506,226 528,226 550,239 572,243 594,255 616,251 638,249 660,251 682,266 704,250 726,239 748,252 770,253 792,263 800,300" fill="#9aa3c4" opacity=".75" filter="url(#soft)"/><polygon points="0,300 0,267 16,267 32,271 48,269 64,285 80,287 96,272 112,260 128,258 144,267 160,258 176,260 192,268 208,258 224,258 240,258 256,258 272,258 288,258 304,272 320,280 336,289 352,298 368,286 384,282 400,283 416,288 432,277 448,280 464,285 480,269 496,279 512,270 528,262 544,261 560,258 576,258 592,258 608,271 624,286 640,281 656,277 672,289 688,298 704,294 720,286 736,296 752,298 768,289 784,298 800,298 800,300" fill="#8a6f64" opacity=".9"/></g>
+  <polygon class="x" points="0,300 0,286 26,164 52,286 78,158 104,286 130,166 156,286 182,176 208,286 234,167 260,286 286,158 312,286 338,164 364,286 390,163 416,286 442,170 468,286 494,177 520,286 546,178 572,286 598,176 624,286 650,161 676,286 702,159 728,286 754,162 780,286 800,300" fill="#0e0a0a" stroke="#300" stroke-width="2"/></g>
+<rect class="haze" y="262" width="800" height="70" fill="url(#gHaze)"/>
+<g class="pair"><g class="n" fill="#fff" opacity=".9" filter="url(#cloudf)"><ellipse cx="290" cy="80" rx="50" ry="18"/><ellipse cx="258" cy="90" rx="36" ry="15"/><ellipse cx="326" cy="92" rx="38" ry="15"/><ellipse cx="300" cy="68" rx="30" ry="12"/></g>
+  <g class="x"><polygon points="230,44 240,78 250,45 260,71 270,50 280,76 290,45 300,77 310,42 320,72 330,42 340,74 350,50 360,81 370,44 370,113 360,98 350,118 340,94 330,122 320,96 310,115 300,98 290,120 280,98 270,115 260,95 250,115 240,99 230,115" fill="#26262c" stroke="#000" stroke-width="2"/><path d="M300 118 L286 146 L300 146 L282 182" fill="none" stroke="#ffe9a0" stroke-width="3"/></g></g>
+<g class="sun"><g class="pair"><g class="n"><circle cx="650" cy="110" r="150" fill="url(#gSun)"/><circle cx="650" cy="110" r="46" fill="#fff3b0"/><circle cx="634" cy="100" r="5" fill="#2a2118" opacity=".55"/><circle cx="666" cy="100" r="5" fill="#2a2118" opacity=".55"/></g>
+  <g class="x"><circle cx="650" cy="110" r="160" fill="url(#gSunR)"/><polygon points="724,110 693,121 714,147 681,141 687,174 661,153 650,184 639,153 613,174 619,141 586,147 607,121 576,110 607,99 586,73 619,79 613,46 639,67 650,36 661,67 687,46 681,79 714,73 693,99" fill="#9b0000" stroke="#300" stroke-width="3"/><path d="M620 94 L646 104 L622 110Z M680 94 L654 104 L678 110Z" fill="#000"/><path d="M616 124 L624 146 L632 126 L640 152 L650 128 L660 152 L668 126 L676 146 L684 124 Q650 112 616 124Z" fill="#fff" stroke="#000" stroke-width="2"/></g></g></g>
+<g class="pair"><g class="n"><path d="M0 320 Q200 285 400 315 T800 298 V400 H0Z" fill="url(#gGround)" filter="url(#fine)"/><path d="M345 400 Q360 340 396 318 Q408 316 414 319 Q386 345 404 400Z" fill="#c9a977" opacity=".45"/></g>
+  <polygon class="x" points="0,400 0,326 16,283 32,331 48,283 64,333 80,283 96,324 112,291 128,332 144,288 160,325 176,290 192,328 208,287 224,331 240,281 256,328 272,280 288,323 304,281 320,322 336,288 352,326 368,283 384,333 400,291 416,328 432,284 448,328 464,289 480,329 496,284 512,330 528,282 544,333 560,281 576,324 592,283 608,329 624,288 640,332 656,289 672,331 688,281 704,326 720,283 736,325 752,291 768,322 784,281 800,326 816,286 800,400" fill="#1a100a" stroke="#000" stroke-width="2" filter="url(#rough)"/></g>
+<g class="pair"><g class="n"><ellipse cx="480" cy="335" rx="56" ry="6" fill="#000" opacity=".3" filter="url(#soft)"/><path d="M520 332 Q524 292 526 264 H532 Q534 292 538 332Z" fill="url(#gTrunk)"/><path d="M528 272 Q518 252 498 240 M528 264 Q542 250 558 232 M528 258 Q528 242 520 222" stroke="#4a3320" stroke-width="3" fill="none"/><g filter="url(#rough)"><circle cx="551" cy="239" r="9" fill="#4a7a34"/><circle cx="516" cy="242" r="14" fill="#5b8c3c"/><circle cx="505" cy="247" r="11" fill="#6b9a45"/><circle cx="536" cy="257" r="11" fill="#4a7a34"/><circle cx="496" cy="254" r="14" fill="#3c6a2c"/><circle cx="498" cy="225" r="10" fill="#6b9a45"/><circle cx="502" cy="243" r="14" fill="#5b8c3c"/><circle cx="503" cy="228" r="16" fill="#3c6a2c"/><circle cx="499" cy="232" r="14" fill="#3c6a2c"/><circle cx="504" cy="254" r="10" fill="#6b9a45"/><circle cx="497" cy="255" r="9" fill="#6b9a45"/><circle cx="542" cy="261" r="9" fill="#4a7a34"/><circle cx="504" cy="229" r="10" fill="#3c6a2c"/><circle cx="547" cy="245" r="15" fill="#6b9a45"/><circle cx="550" cy="253" r="17" fill="#4a7a34"/><circle cx="560" cy="256" r="9" fill="#3c6a2c"/><circle cx="505" cy="254" r="9" fill="#5b8c3c"/><circle cx="508" cy="255" r="16" fill="#3c6a2c"/><circle cx="495" cy="247" r="13" fill="#5b8c3c"/><circle cx="519" cy="257" r="11" fill="#3c6a2c"/><circle cx="550" cy="255" r="12" fill="#3c6a2c"/><circle cx="545" cy="240" r="12" fill="#6b9a45"/><circle cx="519" cy="237" r="15" fill="#5b8c3c"/><circle cx="534" cy="237" r="11" fill="#5b8c3c"/></g></g>
+  <g class="x" stroke="#000" stroke-width="1.5"><ellipse cx="470" cy="336" rx="74" ry="7" fill="#000" opacity=".55" filter="url(#soft)"/><path d="M520 332 V246 Q520 230 528 230 Q536 230 536 246 V332Z M520 288 H506 Q498 288 498 280 V256 Q498 250 504 250 Q510 250 510 256 V274 H520Z M536 276 H550 Q558 276 558 268 V244 Q558 238 552 238 Q546 238 546 244 V262 H536Z" fill="url(#gCact)"/><g fill="#d8d2b8"><polygon points="520,238 508,243 520,248"/><polygon points="536,238 548,243 536,248"/><polygon points="520,251 508,256 520,261"/><polygon points="536,251 548,256 536,261"/><polygon points="520,264 508,269 520,274"/><polygon points="536,264 548,269 536,274"/><polygon points="520,277 508,282 520,287"/><polygon points="536,277 548,282 536,287"/><polygon points="520,290 508,295 520,300"/><polygon points="536,290 548,295 536,300"/><polygon points="520,303 508,308 520,313"/><polygon points="536,303 548,308 536,313"/><polygon points="520,316 508,321 520,326"/><polygon points="536,316 548,321 536,326"/></g><path d="M524 236 V326" stroke="#8fbf6a" stroke-opacity=".18" stroke-width="1"/><path d="M528 236 V326" stroke="#8fbf6a" stroke-opacity=".18" stroke-width="1"/><path d="M532 236 V326" stroke="#8fbf6a" stroke-opacity=".18" stroke-width="1"/></g></g>
+<g class="pair"><g class="n"><path d="M280 333 Q281 313 271 298" stroke="#98a04c" stroke-width="1.6" fill="none"/><path d="M285 333 Q281 317 289 285" stroke="#98a04c" stroke-width="1.6" fill="none"/><path d="M290 333 Q287 305 293 288" stroke="#66772f" stroke-width="1.6" fill="none"/><path d="M295 333 Q297 311 295 286" stroke="#98a04c" stroke-width="1.6" fill="none"/><path d="M300 333 Q295 305 291 292" stroke="#66772f" stroke-width="1.6" fill="none"/><path d="M305 333 Q299 308 303 282" stroke="#98a04c" stroke-width="1.6" fill="none"/><path d="M310 333 Q308 308 318 300" stroke="#66772f" stroke-width="1.6" fill="none"/><path d="M315 333 Q311 312 319 294" stroke="#7b8a3a" stroke-width="1.6" fill="none"/><path d="M320 333 Q326 305 318 293" stroke="#7b8a3a" stroke-width="1.6" fill="none"/><path d="M325 333 Q331 318 335 297" stroke="#98a04c" stroke-width="1.6" fill="none"/><path d="M330 333 Q325 308 337 289" stroke="#7b8a3a" stroke-width="1.6" fill="none"/><path d="M335 333 Q339 315 331 285" stroke="#98a04c" stroke-width="1.6" fill="none"/><path d="M340 333 Q336 307 330 285" stroke="#66772f" stroke-width="1.6" fill="none"/><path d="M345 333 Q350 318 340 293" stroke="#98a04c" stroke-width="1.6" fill="none"/><path d="M350 333 Q356 313 357 284" stroke="#66772f" stroke-width="1.6" fill="none"/><path d="M355 333 Q358 306 350 288" stroke="#66772f" stroke-width="1.6" fill="none"/><path d="M360 333 Q357 317 363 288" stroke="#7b8a3a" stroke-width="1.6" fill="none"/><path d="M365 333 Q366 311 361 300" stroke="#98a04c" stroke-width="1.6" fill="none"/><path d="M370 333 Q372 309 380 284" stroke="#98a04c" stroke-width="1.6" fill="none"/><path d="M375 333 Q376 313 385 294" stroke="#7b8a3a" stroke-width="1.6" fill="none"/><path d="M380 333 Q385 305 390 297" stroke="#7b8a3a" stroke-width="1.6" fill="none"/><path d="M385 333 Q382 304 387 298" stroke="#98a04c" stroke-width="1.6" fill="none"/><path d="M390 333 Q392 306 390 292" stroke="#66772f" stroke-width="1.6" fill="none"/><path d="M395 333 Q389 313 401 298" stroke="#7b8a3a" stroke-width="1.6" fill="none"/><path d="M400 333 Q401 313 407 287" stroke="#98a04c" stroke-width="1.6" fill="none"/><path d="M405 333 Q406 304 395 294" stroke="#7b8a3a" stroke-width="1.6" fill="none"/><path d="M410 333 Q410 306 401 295" stroke="#66772f" stroke-width="1.6" fill="none"/><path d="M415 333 Q414 308 409 285" stroke="#7b8a3a" stroke-width="1.6" fill="none"/><path d="M420 333 Q422 304 426 286" stroke="#98a04c" stroke-width="1.6" fill="none"/><path d="M425 333 Q428 307 417 293" stroke="#98a04c" stroke-width="1.6" fill="none"/><path d="M430 333 Q432 310 429 283" stroke="#66772f" stroke-width="1.6" fill="none"/><path d="M435 333 Q431 310 441 283" stroke="#98a04c" stroke-width="1.6" fill="none"/><path d="M440 333 Q438 308 442 294" stroke="#98a04c" stroke-width="1.6" fill="none"/><path d="M445 333 Q441 310 451 292" stroke="#66772f" stroke-width="1.6" fill="none"/><path d="M450 333 Q451 315 453 283" stroke="#7b8a3a" stroke-width="1.6" fill="none"/><path d="M455 333 Q457 318 464 288" stroke="#7b8a3a" stroke-width="1.6" fill="none"/><path d="M460 333 Q462 318 466 288" stroke="#66772f" stroke-width="1.6" fill="none"/><path d="M465 333 Q471 309 458 285" stroke="#7b8a3a" stroke-width="1.6" fill="none"/><path d="M470 333 Q475 316 462 283" stroke="#98a04c" stroke-width="1.6" fill="none"/><path d="M475 333 Q475 304 477 292" stroke="#7b8a3a" stroke-width="1.6" fill="none"/><circle cx="290" cy="307" r="3" fill="#ffd23f"/><circle cx="316" cy="302" r="3" fill="#ffd23f"/><circle cx="342" cy="306" r="3" fill="#ffd23f"/><circle cx="368" cy="308" r="3" fill="#ffd23f"/><circle cx="394" cy="301" r="3" fill="#e86a9a"/><circle cx="420" cy="306" r="3" fill="#b58cff"/><circle cx="446" cy="300" r="3" fill="#ffd23f"/></g><g class="x" fill="#140808" stroke="#600" stroke-width="1.2"><polygon points="275,334 279,310 281,322 284,318 287,334"/><polygon points="284,334 288,292 290,322 293,305 296,334"/><polygon points="293,334 297,290 299,322 302,304 305,334"/><polygon points="302,334 306,314 308,322 311,320 314,334"/><polygon points="311,334 315,313 317,322 320,320 323,334"/><polygon points="320,334 324,308 326,322 329,316 332,334"/><polygon points="329,334 333,310 335,322 338,318 341,334"/><polygon points="338,334 342,307 344,322 347,316 350,334"/><polygon points="347,334 351,314 353,322 356,320 359,334"/><polygon points="356,334 360,293 362,322 365,306 368,334"/><polygon points="365,334 369,305 371,322 374,314 377,334"/><polygon points="374,334 378,304 380,322 383,313 386,334"/><polygon points="383,334 387,291 389,322 392,304 395,334"/><polygon points="392,334 396,303 398,322 401,313 404,334"/><polygon points="401,334 405,307 407,322 410,316 413,334"/><polygon points="410,334 414,295 416,322 419,307 422,334"/><polygon points="419,334 423,299 425,322 428,310 431,334"/><polygon points="428,334 432,311 434,322 437,318 440,334"/><polygon points="437,334 441,299 443,322 446,310 449,334"/><polygon points="446,334 450,291 452,322 455,304 458,334"/><polygon points="455,334 459,296 461,322 464,308 467,334"/><polygon points="464,334 468,311 470,322 473,318 476,334"/><polygon points="473,334 477,287 479,322 482,302 485,334"/></g></g>
+<g class="pair"><g class="n"><polygon points="112,332 40,346 74,354 282,334" fill="#000" opacity=".32" filter="url(#soft)"/><rect x="110" y="230" width="170" height="100" fill="url(#planks)" filter="url(#fine)"/><polygon points="95,232 195,170 295,232" fill="url(#tin)" stroke="#2f2b28" stroke-width="2"/><rect x="238" y="170" width="18" height="46" fill="#5a4636" stroke="#2f2b28"/>
+    <rect x="127" y="255" width="40" height="40" fill="#3a2414"/><rect class="w1" x="131" y="259" width="32" height="32" fill="#ffd66b"/><path d="M147 259 V291 M131 275 H163" stroke="#3a2414" stroke-width="2"/><path d="M133 261 L150 261 L133 281Z" fill="#fff" opacity=".25"/>
+    <rect x="223" y="255" width="40" height="40" fill="#3a2414"/><rect class="w2" x="227" y="259" width="32" height="32" fill="#ffd66b"/><path d="M243 259 V291 M227 275 H259" stroke="#3a2414" stroke-width="2"/><path d="M229 261 L246 261 L229 281Z" fill="#fff" opacity=".25"/><rect x="168" y="326" width="54" height="8" fill="#5b4028"/></g>
+  <g class="x" filter="url(#rough)"><polygon points="40,346 112,332 282,334 330,352" fill="#000" opacity=".6"/><polygon points="108,330 118,238 150,232 190,228 236,224 282,232 284,330" fill="#17110c" stroke="#000" stroke-width="2"/><polygon points="88,238 104,206 112,226 128,186 142,214 160,160 176,200 196,140 212,196 232,158 244,206 266,176 274,214 300,200 296,240" fill="#0c0806" stroke="#000" stroke-width="2"/><polygon points="130,258 168,252 162,294 134,290" fill="#000"/><polygon points="226,256 262,262 258,292 230,296" fill="#000"/><path d="M136 272 L160 268 M234 276 L254 280" stroke="#ff2a2a" stroke-width="3"/></g></g>
+<rect x="176" y="268" width="38" height="62" fill="#1a0e06" stroke="#2b1a0e" stroke-width="2"/>
+<g class="fig"><rect x="190" y="278" width="10" height="52" fill="#000"/><circle cx="195" cy="273" r="9" fill="#000"/><circle cx="191.5" cy="272" r="1.8" fill="#fff"/><circle cx="198.5" cy="272" r="1.8" fill="#fff"/></g>
+</svg>
+<div id="grain"></div>
+<svg id="castle" viewBox="0 0 400 260" aria-hidden="true">
+  <g fill="rgba(255,236,160,.28)" stroke="#ffe9a0" stroke-width="1.5">
+    <polygon points="40,260 40,120 65,80 90,120 90,260"/>
+    <polygon points="110,260 110,90 150,30 190,90 190,260"/>
+    <polygon points="170,260 170,130 200,60 230,130 230,260"/>
+    <polygon points="210,260 210,90 250,20 290,90 290,260"/>
+    <polygon points="310,260 310,120 335,80 360,120 360,260"/>
+    <polyline points="150,30 150,90 110,90 190,90 150,30 190,260 150,90 110,260" fill="none"/>
+    <polyline points="250,20 250,90 210,90 290,90 250,20 290,260 250,90 210,260" fill="none"/>
+  </g>
+</svg>
+<main><div id="meters"></div><div id="card"></div></main>
+<svg id="cracks" preserveAspectRatio="none" aria-hidden="true"></svg>
+<div id="vig"></div>
+<div id="blk"></div>
+<div id="ctl"><button id="mute" aria-label="Toggle sound">Sound: on</button><button id="voice" aria-label="Toggle narrator voice">Voice: on</button><button id="fx" aria-label="Toggle reduced effects">Effects: full</button><button id="notesbtn">Design notes</button></div>
+<div id="notes" role="dialog" aria-modal="true" aria-labelledby="nt"><div><h3 id="nt">Design notes</h3><ul><li><b>The cheerful narrator and the slips:</b> the narrator reframes hardship as adventure, as the parents do. Slips let reality, and later the castle, show through. <i>Illusion vs. Reality, Deception.</i></li><li><b>Meters that drain no matter what:</b> the chaos is not something the child can fix. <i>Fear &amp; Instability.</i></li><li><b>Quiet actions help most:</b> scavenging, hiding coins and odd jobs build the jar, while the cheerful options cost you. <i>Self-sufficiency.</i></li><li><b>Studying and saving to leave:</b> the way out is through your own effort and learning. <i>The Power of Education.</i></li><li><b>Food and Warmth vs. Trust:</b> physical needs can be partly refilled, but trust mostly only wears down. <i>Physical vs. Emotional wounds.</i></li><li><b>Cracking glass, darkening world, empty lunch line:</b> the illusion breaks and the child is alone with it. <i>Isolation, Fear &amp; Instability.</i></li><li><b>Effects button:</b> turns off flashing, scare bursts and flicker.</li></ul><button id="nx">Close</button></div></div>
+<div id="start">
+  <h2 id="ttl">Another Adventure!</h2>
+  <p>A game about a family that always says everything is fine.</p>
+  <button id="go">Begin</button>
+  <small>Contains flashing, flickering and unsettling imagery. Headphones recommended. Use the Effects button (bottom right) to turn the flashing down.</small>
+</div>
+<script>
+const $ = s => document.querySelector(s);
+const KEYS = {f:'food', w:'warm', m:'money', t:'trust'};
+const S = {day:0, m:{food:70, warm:70, money:20, trust:75}};
+const tok = t => t.replace(/\{([^|}]*)\|([^|}]*)\|([^}]*)\}/g,
+  (_, a, b, c) => `<span class="slip" data-o="${a}" data-r="${b}" data-v="${c}">${a}</span>`);
+const clamp = v => Math.max(0, Math.min(100, v));
+const rnd = a => a[Math.random() * a.length | 0];
+let CALM = matchMedia('(prefers-reduced-motion: reduce)').matches;   // reduced effects: no flashing, bursts or flicker
+
+const SCENES = [
+ {t:'Pack up', c:"Dad says it's time to skedaddle! It's an {adventure|escape|castle on the horizon}, and nobody has to say goodbye!",
+  s:'Another town, another set of bills left behind. Lori and Brian are already in the car.',
+  o:[{l:'Cheer along', e:{f:-5,t:5}, r:"That's the spirit! We leave behind nothing but {trouble|debt|dust}."},
+     {l:'Pocket coins from the dresser', e:{m:10,t:-3}, r:"Just {tidying up|taking what we can|gathering stones}. Good eye, kid."},
+     {l:'Pack the canned food', e:{f:10,w:-3}, r:"Practical! Not that we'd ever {go without|go hungry|lack for anything}."}]},
+ {t:'Dinner', c:"Tonight's menu is a {surprise|hot dog, maybe|banquet in halls of glass}!",
+  s:'The fridge is nearly empty. Mom is painting, and cooking is up to you.',
+  o:[{l:'Wait for the surprise', e:{f:-10,t:3}, r:"Anticipation is the best {seasoning|substitute|feast}!"},
+     {l:'Scavenge in the kitchen', e:{f:12,t:-2}, r:"Resourceful! Not that you were {hungry|starving|ever without light}."},
+     {l:'Ask Mom for money', e:{m:6,t:-5}, r:"Her {art|rent|colors} come first, but here you go."}]},
+ {t:'Payday', c:"Dad has a {big plan|drinking problem|blueprint for a glass castle}! A fantastic investment!",
+  s:"Dad is holding the family's money and the Glass Castle blueprints.",
+  o:[{l:'Hand it over', e:{m:-15,t:4}, r:"Faith in Dad pays off {someday|never|in crystal}."},
+     {l:'Hide a portion', e:{m:8,t:-6}, r:"Sneaky! The {castle fund|real fund|foundation} grows."},
+     {l:'Ask where it is going', e:{m:-5,t:-8}, r:"Dad loves {questions|lies|plans}. Gently, now."}]},
+ {t:'Cold snap', c:"The house in Welch is {cozy|freezing|a glass castle full of sunlight}! Who needs heat?",
+  s:'No heat. Frost on the inside of the windows.',
+  o:[{l:'Bonfire fun', e:{w:10,f:-5}, r:"Fire is {fun|dangerous|light through glass}!"},
+     {l:'Newspaper under the blankets', e:{w:8}, r:"Clever {kid|survivor|architect}."},
+     {l:"Knock on a neighbor's door", e:{w:12,t:-5}, r:"Neighbors {love to help|slam doors|shine like windows}."}]},
+ {t:'Lunch line', c:"School lunch is {a buffet|the trash can|a hall of mirrors and glass} today!",
+  s:"You have no lunch money. The other kids have full trays, and nobody sits with you.",
+  o:[{l:"Eat from someone's discarded bag", e:{f:14,t:-6}, r:"A {free sample|secret|crystal}, really."},
+     {l:'Skip lunch and study', e:{f:-8,t:4}, r:"Knowledge is {filling|the only exit|the way through the walls}."},
+     {l:'Work odd jobs after school', e:{m:14,f:-6,w:-3}, r:"Early {birds|risers|builders} get the {worm|wage|sun}."}]},
+ {t:'The jar', c:"Saving up for New York with Lori? How {adorable|futile|crystalline}! Dad is {borrowing|taking|building} it for the castle.",
+  s:'You have a jar of money for leaving. Dad knows where it is.',
+  o:[{l:'Move it somewhere new', e:{m:8,t:-4}, r:"A {game|hiding place|vault} of your own."},
+     {l:'Add everything you can', e:{m:15,f:-8}, r:"Such {dedication|hunger|light}!"},
+     {l:'Trust Dad with it', e:{m:-25,t:3}, r:"It will be {safe|gone|a tower} by morning."}]}
+];
+
+// ---------- narrator voice (speech synthesis) ----------
+const TTS = 'speechSynthesis' in window; let voiceOn = TTS, voice = null;
+if (TTS) {
+  const pick = () => { const v = speechSynthesis.getVoices();
+    voice = v.find(x => /en[-_]US/i.test(x.lang) && /female|samantha|zira|aria|google us/i.test(x.name)) || v.find(x => /^en/i.test(x.lang)) || null; };
+  pick(); speechSynthesis.onvoiceschanged = pick;
+}
+function say(text, o = {}){   // bright and sing-song early, low and slow late
+  if (!TTS || !voiceOn || !text) return;
+  if (o.soft && speechSynthesis.speaking) return;
+  if (!o.soft) speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text), d = Math.min(S.day, 6);
+  if (voice) u.voice = voice;
+  u.pitch = o.pitch ?? Math.max(.1, 1.5 - d * .23);
+  u.rate = o.rate ?? Math.max(.6, 1.05 - d * .07);
+  u.volume = o.vol ?? 1; speechSynthesis.speak(u);
+}
+
+// ---------- sound (WebAudio, started by the Begin button) ----------
+let A = null, muted = false;
+function audio(){
+  if (A) return;
+  const C = new (window.AudioContext || window.webkitAudioContext)();
+  const g = C.createGain(), f = C.createBiquadFilter(), o1 = C.createOscillator(), o2 = C.createOscillator();
+  f.type = 'lowpass'; f.frequency.value = 1200; g.gain.value = 0;
+  o1.type = 'sine'; o2.type = 'triangle'; o1.frequency.value = 196; o2.frequency.value = 294;
+  o1.connect(f); o2.connect(f); f.connect(g); g.connect(C.destination); o1.start(); o2.start();
+  A = {C, g, f, o1, o2}; tune();
+}
+function tune(){   // the drone drifts from a calm fifth toward a tritone and darkens
+  if (!A) return; const d = Math.min(S.day, 6), t = A.C.currentTime;
+  A.o2.frequency.setTargetAtTime(196 * (1.5 - d * .015), t, 1.5);
+  A.f.frequency.setTargetAtTime(1200 - d * 140, t, 1.5);
+  A.g.gain.setTargetAtTime(muted ? 0 : .04 + d * .012, t, .5);
+}
+function tone(f, t, d, v, type){
+  if (!A || muted) return; const c = A.C, o = c.createOscillator(), g = c.createGain();
+  o.type = type || 'sine'; o.frequency.value = f;
+  g.gain.setValueAtTime(v, c.currentTime + t); g.gain.exponentialRampToValueAtTime(.0001, c.currentTime + t + d);
+  o.connect(g); g.connect(c.destination); o.start(c.currentTime + t); o.stop(c.currentTime + t + d);
+}
+const beat  = () => { tone(55, 0, .25, .5); tone(50, .2, .3, .35); };
+const chime = () => [1320, 1760, 2640].forEach((f, i) => tone(f, i * .05, 1.8, .04));
+const scrape = () => { tone(233, 0, .45, .04, 'sawtooth'); tone(247, 0, .45, .04, 'sawtooth'); };
+setInterval(() => { if (document.body.classList.contains('hungry')) beat(); }, 1100);
+
+// ---------- atmosphere ----------
+function buildMeters(){
+  $('#meters').innerHTML = ['Food','Warmth','Money','Trust'].map(n => `<div class="m"><span>${n}</span><i><b></b></i></div>`).join('');
+  paint();
+}
+function paint(){
+  const v = Object.values(S.m);
+  document.querySelectorAll('.m').forEach((m, i) => {
+    m.querySelector('b').style.width = v[i] + '%';
+    m.classList.toggle('low', v[i] < 25 && i !== 2);
+  });
+  document.body.classList.toggle('hungry', S.m.food < 30 || S.m.warm < 25);
+}
+// Glass cracks: impact points with radiating cracks, branches, ring fractures and faint shard facets
+const IMPACTS = [[.8, .16, 1, .34], [.16, .72, 3, .38], [.9, .78, 5, .42]];   // x, y, first day, reach
+let hit = 0;
+function buildCracks(){
+  const W = innerWidth, H = innerHeight, D = Math.hypot(W, H), rr = Math.random;
+  const f = v => v.toFixed(1);
+  let paths = '', facets = '';
+  const path = (pts, w, i, k, t) => `<path pathLength="1" d="M${pts.map(q => f(q[0]) + ' ' + f(q[1])).join(' L')}" data-i="${i}" data-k="${k}" data-t="${t.toFixed(2)}" style="stroke-width:${w}"/>`;
+  IMPACTS.forEach(([fx, fy, , reach], i) => {
+    const cx = fx * W, cy = fy * H, n = 9 + (rr() * 4 | 0), rays = [];
+    for (let r = 0; r < n; r++) {
+      const len = D * reach * (.45 + rr() * .55);
+      let x = cx, y = cy, a = (r / n) * 6.283 + rr() * .4, dist = 0; const pts = [[x, y]];
+      while (dist < len) {
+        const seg = 14 + rr() * 38; a += (rr() - .5) * .35; x += Math.cos(a) * seg; y += Math.sin(a) * seg; dist += seg; pts.push([x, y]);
+        if (rr() < .28 && dist > 40) {   // side branch, thinner and shorter
+          let aa = a + (rr() < .5 ? -1 : 1) * (.5 + rr() * .6), bx = x, by = y, bd = 0; const bl = 30 + rr() * 90, bp = [[x, y]];
+          while (bd < bl) { const sg = 10 + rr() * 22; aa += (rr() - .5) * .5; bx += Math.cos(aa) * sg; by += Math.sin(aa) * sg; bd += sg; bp.push([bx, by]); }
+          paths += path(bp, .8, i, 'b', .5 + rr() * 1.5);
+        }
+      }
+      rays.push(pts); paths += path(pts, 1.6, i, 'r', 0);
+    }
+    [2, 4].forEach((ni, ri) => {   // ring fractures join neighbouring rays
+      for (let r = 0; r < n; r++) {
+        const a = rays[r][ni], b = rays[(r + 1) % n][ni];
+        if (!a || !b || Math.hypot(a[0] - b[0], a[1] - b[1]) > 260) continue;
+        paths += path([a, [(a[0] + b[0]) / 2 + (rr() - .5) * 30, (a[1] + b[1]) / 2 + (rr() - .5) * 30], b], .7, i, 'c', 1 + ri * .9);
+      }
+    });
+    for (let r = 0; r < n; r++) {      // faint shard facets between rays
+      const A = rays[r], B = rays[(r + 1) % n]; if (!A[2] || !B[2]) continue;
+      facets += `<polygon class="sh" data-i="${i}" data-t="${(.3 + rr() * 1.5).toFixed(2)}" points="${[[cx, cy], A[1], A[2], B[2], B[1]].map(q => f(q[0]) + ',' + f(q[1])).join(' ')}" style="fill:rgba(255,255,255,${(.03 + rr() * .07).toFixed(3)})"/>`;
+    }
+    facets += `<polygon class="sh" data-i="${i}" data-t="0" points="${Array.from({length: 10}, (_, k) => f(cx + Math.cos(k * .628) * (k % 2 ? 4 : 10)) + ',' + f(cy + Math.sin(k * .628) * (k % 2 ? 4 : 10))).join(' ')}" style="fill:rgba(255,255,255,.4)"/>`;
+  });
+  const svg = $('#cracks'); svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.innerHTML = facets + paths;
+}
+function crackLevel(d){   // rays lengthen day by day; branches and rings follow
+  document.querySelectorAll('#cracks path').forEach(p => {
+    const g = d - IMPACTS[p.dataset.i][2];
+    const v = g < 0 ? 0 : p.dataset.k === 'r' ? Math.min(1, .4 + g * .3) : Math.min(1, (g - p.dataset.t) / 1.2);
+    p.style.strokeDashoffset = 1 - Math.max(0, v);
+  });
+  document.querySelectorAll('#cracks .sh').forEach(q => q.style.opacity = d - IMPACTS[q.dataset.i][2] >= +q.dataset.t ? 1 : 0);
+  const n = IMPACTS.filter(m => d >= m[2]).length;
+  if (n > hit) { crack(); const m = $('main'); m.classList.remove('shake'); void m.offsetWidth; m.classList.add('shake'); }
+  hit = n;
+}
+function crack(){   // a sharp noise burst plus glassy ticks
+  if (!A || muted) return;
+  const c = A.C, b = c.createBuffer(1, c.sampleRate * .35, c.sampleRate), d = b.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 6);
+  const src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+  src.buffer = b; f.type = 'highpass'; f.frequency.value = 2500; g.gain.value = .5;
+  src.connect(f); f.connect(g); g.connect(c.destination); src.start();
+  [3100, 4200, 5200].forEach((hz, i) => tone(hz, i * .03, .12, .05, 'square'));
+}
+function look(){
+  const d = S.day, r = document.documentElement.style;
+  const f = `saturate(${Math.max(.1, 1.3 - d * .22)}) brightness(${Math.max(.35, 1 - d * .11)})`;
+  $('#bg').style.filter = $('#scene').style.filter = f;
+  [[2,'a'],[3,'b'],[4,'c'],[5,'d']].forEach(([n, c]) => $('#scene').classList.toggle(c, d >= n));
+  r.setProperty('--font', d >= 3 ? "'Special Elite','Courier New',monospace" : "'Fredoka','Trebuchet MS',sans-serif");
+  document.body.classList.toggle('late', d >= 5);
+  $('#bg').classList.toggle('flick', d >= 2);
+  document.body.classList.toggle('dim', d >= 3);
+  r.setProperty('--v', Math.min(1, d / 6.5)); r.setProperty('--g', .05 + d * .04);
+  $('#castle').style.opacity = Math.min(.45, d * .07);
+  crackLevel(d);
+  tune();
+}
+const W1 = ["keep smiling", "it's an adventure", "don't tell anyone", "everything's fine"];
+const W2 = ["nobody is coming", "the jar is empty", "he took it", "you're hungry", "don't look at the cold"];
+const W3 = ["glass", "look up", "it was always yours", "build it yourself"];
+const EYES = `<svg class="eyes" viewBox="0 0 48 14"><g fill="#f6f0d8"><ellipse cx="11" cy="7" rx="9" ry="5"/><ellipse cx="37" cy="7" rx="9" ry="5"/></g><g fill="#000"><circle cx="11" cy="7" r="2.6"/><circle cx="37" cy="7" r="2.6"/></g></svg>`;
+function whisper(){
+  if (S.day < 2) return;
+  if (S.day >= 3 && Math.random() < .25) {
+    const w = document.createElement('div'); w.innerHTML = EYES; const e = w.firstChild;
+    e.style.top = (10 + Math.random() * 70) + '%'; e.style[Math.random() < .5 ? 'left' : 'right'] = '2%';
+    document.body.appendChild(e); setTimeout(() => e.remove(), 3500); return;
+  }
+  const pool = S.day >= 5 ? [...W2, ...W3, ...W3] : S.day >= 3 ? [...W1, ...W2] : W1;
+  const txt = rnd(pool), el = document.createElement('div');
+  el.className = 'wh' + (W3.includes(txt) ? ' g' : ''); el.textContent = txt;
+  el.style.left = (4 + Math.random() * 60) + '%'; el.style.top = (8 + Math.random() * 80) + '%';
+  el.style.transform = `rotate(${Math.random() * 14 - 7}deg)`;
+  document.body.appendChild(el); setTimeout(() => el.remove(), 4100);
+}
+function glitch(){ if (CALM) return;   // the narrator's own sentence briefly corrupts
+  const c = $('.cap'); if (!c || c.dataset.g || document.querySelector('.slip[data-on]')) return;
+  c.dataset.g = 1; const h = c.innerHTML;
+  c.innerHTML = ('>' + h + '<').replace(/>([^<]+)</g, (m, t) => '>' + t.replace(/[a-z]/gi, ch => Math.random() < .2 ? rnd('▒░▓#') : ch) + '<').slice(1, -1);
+  setTimeout(() => { c.innerHTML = h; delete c.dataset.g; }, 150);
+}
+(function loop(){
+  setTimeout(() => { whisper(); loop(); }, Math.max(3000, 9500 - S.day * 1300) + Math.random() * 2000);
+})();
+(function loop2(){
+  setTimeout(() => { if (S.day >= 3) glitch(); loop2(); }, 5000 + Math.random() * 4000);
+})();
+
+// Scene corruption: an element flickers faster and faster, settles into its dark form, holds, then flickers back
+function flip(el, hold){
+  if (el.dataset.busy) return; el.dataset.busy = 1;
+  const calm = CALM;
+  const run = (to, done) => {
+    let n = calm ? 0 : 9 + (Math.random() * 6 | 0);
+    (function step(){
+      if (n-- <= 0) { el.classList.toggle('dk', to); if (to) tone(60, 0, .5, .35); return done(); }
+      el.classList.toggle('dk'); setTimeout(step, 40 + n * 12 + Math.random() * 30);
+    })();
+  };
+  run(true, () => setTimeout(() => run(false, () => delete el.dataset.busy), hold));
+}
+function corruptScene(n){
+  const free = [...document.querySelectorAll('#scene .pair')].filter(e => !e.dataset.busy);
+  for (let i = 0; i < n && free.length; i++) flip(free.splice(Math.random() * free.length | 0, 1)[0], 2500 + S.day * 1100 + Math.random() * 2500);
+}
+// Scare burst: jagged blood-red type, the scene flips to its dark self, a whisper, sometimes a blackout
+const ALT = ['Nobody is coming', 'Keep smiling', "Don't tell anyone", 'Run'];
+function scare(){
+  if (CALM) return;
+  const b = document.body, t = $('#ttl'), old = t && t.textContent;
+  if (t) t.textContent = rnd(ALT); else say(rnd(W2), {soft:true, pitch:.1, rate:.65, vol:.8});
+  b.classList.add('horror'); tone(48, 0, .7, .5); scrape();
+  corruptScene(S.day >= 3 ? 3 : 2);
+  if (S.day >= 4 && Math.random() < .5 && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    $('#blk').classList.add('on'); setTimeout(() => $('#blk').classList.remove('on'), 110);
+  }
+  setTimeout(() => { b.classList.remove('horror'); if (t) t.textContent = old; }, 650 + Math.random() * 400);
+}
+(function loop4(){
+  setTimeout(() => { if (S.day > 0 || $('#start')) scare(); loop4(); },
+    $('#start') ? 4000 + Math.random() * 2500 : Math.max(6000, 16000 - S.day * 2200) + Math.random() * 4000);
+})();
+
+// ---------- game ----------
+function scene(i){
+  S.day = i; look();
+  if (i >= SCENES.length) return ending();
+  const sc = SCENES[i];
+  $('#card').innerHTML = `<h1>${sc.t}</h1><p class="cap">${tok(sc.c)}</p><p class="sit">${sc.s}</p>` +
+    sc.o.map((o, k) => `<button data-k="${k}">${o.l}</button>`).join('');
+  $('#card').querySelectorAll('button').forEach(b => b.onclick = () => choose(i, +b.dataset.k));
+  if (!$('#start')) say($('.cap').textContent);
+}
+function choose(i, k){
+  const o = SCENES[i].o[k];
+  for (const [a, d] of Object.entries(o.e)) S.m[KEYS[a]] = clamp(S.m[KEYS[a]] + d);
+  paint();
+  const card = $('#card');
+  card.querySelectorAll('button').forEach(b => b.disabled = true);
+  card.insertAdjacentHTML('beforeend', `<p class="spin">${tok(o.r)}</p><button class="next">Next day</button>`);
+  card.querySelector('.next').onclick = () => {   // the day passes; the drain is not a choice
+    S.m.food = clamp(S.m.food - 9); S.m.warm = clamp(S.m.warm - 7); S.m.trust = clamp(S.m.trust - 4);
+    paint(); scene(i + 1);
+  };
+  say(card.querySelector('.spin').textContent);
+  if (S.day > 0) setTimeout(slip, 500);
+}
+function slip(){
+  const els = [...document.querySelectorAll('.slip')].filter(e => !e.dataset.on);
+  if (!els.length || $('.cap')?.dataset.g) return;
+  const el = rnd(els), vision = S.day >= 4;
+  corruptScene(S.day >= 4 ? 2 : 1);
+  el.dataset.on = 1; el.textContent = vision ? el.dataset.v : el.dataset.r; el.classList.add(vision ? 'sv' : 'sr');
+  if (vision) { say(el.dataset.v, {soft:true, pitch:.6, rate:.6, vol:.7}); chime(); $('#castle').classList.add('flash'); setTimeout(() => $('#castle').classList.remove('flash'), 1400); }
+  else { say(el.dataset.r, {soft:true, pitch:.1, rate:.65, vol:.8}); scrape(); const m = $('main'); m.classList.remove('shake'); void m.offsetWidth; m.classList.add('shake'); }
+  setTimeout(() => { el.textContent = el.dataset.o; el.classList.remove('sv', 'sr'); delete el.dataset.on; }, 1600);
+}
+(function loop3(){
+  setTimeout(() => { if (S.day > 0) slip(); loop3(); }, Math.max(2500, 7500 - S.day * 1000) + Math.random() * 1500);
+})();
+
+function ending(){
+  const m = S.m, left = m.money >= 50;
+  document.documentElement.style.setProperty('--v', 1);
+  $('#castle').style.opacity = .85; $('#castle').classList.add('flash'); chime();
+  say('It was never built. But you could always see through it.', {pitch:.15, rate:.6, vol:.9});
+  $('#card').innerHTML = `<h1>Night</h1><p class="cap">…</p>
+    <p class="sit">The narrator has nothing to add.</p>
+    <table><tr><td>Food</td><td>${m.food}</td></tr><tr><td>Warmth</td><td>${m.warm}</td></tr>
+    <tr><td>Money</td><td>${m.money}</td></tr><tr><td>Trust</td><td>${m.trust}</td></tr></table>
+    <p>${left ? 'There is enough in the jar. The bus leaves in the morning.' : 'The jar is lighter than the promises. You keep counting.'}</p>
+    <p class="vis">It was never built. But you could always see through it.</p>
+    <p class="sit">Open Design notes (bottom right) to see how each mechanic maps to the memoir's themes.</p>
+    <button class="next" id="again">Play again</button>`;
+  $('#again').onclick = () => { S.m = {food:70, warm:70, money:20, trust:75}; $('#castle').classList.remove('flash'); buildMeters(); scene(0); };
+}
+$('#go').onclick = () => { audio(); if (A) A.C.resume(); $('#start').remove(); document.body.classList.remove('title'); say($('.cap').textContent); };
+$('#mute').onclick = e => { muted = !muted; e.target.textContent = 'Sound: ' + (muted ? 'off' : 'on'); tune(); };
+if (!TTS) $('#voice').remove(); else $('#voice').onclick = e => { voiceOn = !voiceOn; if (!voiceOn) speechSynthesis.cancel(); e.target.textContent = 'Voice: ' + (voiceOn ? 'on' : 'off'); };
+$('#notesbtn').onclick = () => { $('#notes').classList.add('on'); $('#nx').focus(); };
+$('#nx').onclick = () => $('#notes').classList.remove('on');
+addEventListener('keydown', e => { if (e.key === 'Escape') $('#notes').classList.remove('on'); });
+const fxLabel = () => { document.body.classList.toggle('calm', CALM); $('#fx').textContent = 'Effects: ' + (CALM ? 'reduced' : 'full'); };
+$('#fx').onclick = () => { CALM = !CALM; fxLabel(); };
+fxLabel();
+buildCracks(); buildMeters(); scene(0);
+</script>
+</body>
+</html>
